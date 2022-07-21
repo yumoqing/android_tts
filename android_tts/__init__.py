@@ -78,8 +78,6 @@ class AndroidNativeTTS(object):
 		'''
 
 		self._tts = TextToSpeech(PythonActivity.mActivity, None)
-								self.init_listener)
-
 		# listener = MyUtteranceProgressListener(self)
 		# self._tts.setOnUtteranceProgressListener(listener)
 		self.setProperty('rate', 200)
