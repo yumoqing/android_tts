@@ -1,30 +1,48 @@
+# -*- coding: utf-8 -*-
+
 try:
 	from setuptools import setup
 except ImportError:
 	from distutils.core import setup
 
-#with open('README.rst', 'r') as f:
-#	long_description = f.read()
+with open('android_tts/version.py', 'r') as f:
+	x = f.read()
+	y = x[x.index("'")+1:]
+	z = y[:y.index("'")]
+	version = z
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
+name = "android_tts"
+description = "android_tts is a ali tts driver for unitts engine"
+author = "yumoqing"
+email = "yumoqing@gmail.com"
+
+package_data = {}
 
 setup(
-	name='android_tts',
-	packages=['android_tts'],
-	version='0.0.1',
-	description='a pyttsx3 driver for android device, it use android.speech.tts.',
-	long_description='',
-	summary='pyttsx3 driver for android device',
-	author='Yu Moqing',
-	url='https://github.com/yumoqing/android_tts',
-	author_email='yumoqing@gmail.com',
-	# install_requires=install_requires ,
-	keywords=['pyttsx' , 'android', 'offline tts engine'],
+	name="android_tts",
+	version=version,
+	
+	# uncomment the following lines if you fill them out in release.py
+	description=description,
+	author=author,
+	author_email=email,
+   	platforms='any',
+	install_requires=[
+	],
+	packages=[
+		"android_tts"
+	],
+	package_data=package_data,
+	keywords = [
+	],
+	url="https://github.com/yumoqing/android_tts",
+	long_description=long_description,
+	long_description_content_type="text/markdown",
 	classifiers = [
-		  'Intended Audience :: End Users/Desktop',
-		  'Intended Audience :: Developers',
-		  'Intended Audience :: Information Technology',
-		  'Intended Audience :: System Administrators',
-		  'Operating System :: android :: android TV',
-		  'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
-		  'Programming Language :: Python :: 3'
+		'Operating System :: OS Independent',
+		'Programming Language :: Python :: 3',
+		'License :: OSI Approved :: MIT License',
 	],
 )
