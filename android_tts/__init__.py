@@ -3,24 +3,6 @@ from unitts.basedriver import BaseDriver
 from unitts.voice import Voice
 from jnius import autoclass
 import android
-# from android.permissions import request_permissions, Permission
-
-"""
-		from jnius import autoclass
-		Locale = autoclass('java.util.Locale')
-		PythonActivity = autoclass('org.renpy.android.PythonActivity')
-		TextToSpeech = autoclass('android.speech.tts.TextToSpeech')
-		tts = TextToSpeech(PythonActivity.mActivity, None)
-
-		# Play something in english
-		tts.setLanguage(Locale.US)
-		tts.speak('Hello World.', TextToSpeech.QUEUE_FLUSH, None)
-
-		# Queue something in french
-		tts.setLanguage(Locale.FRANCE)
-		tts.speak('Bonjour tout le monde.', TextToSpeech.QUEUE_ADD, None)
-
-"""
 
 def buildDriver(proxy):
 	'''
