@@ -117,11 +117,11 @@ class AndroidNativeTTS(BaseDriver):
 		self._proxy.setBusy(True)
 		self.set_voice(sentence.lang)
 		retries = 0
-		r = self._tts.speak(text, TextToSpeech.QUEUE_FLUSH, None)
+		r = self._tts.speak(sentence.text, TextToSpeech.QUEUE_FLUSH, None)
 		while retries < 5 and r == -1:
 			time.sleep(0.1)
 			retries += 1
-			r = self._tts.speak(text, TextToSpeech.QUEUE_FLUSH, None)
+			r = self._tts.speak(sentence.text, TextToSpeech.QUEUE_FLUSH, None)
 			
 	def getProperty(self, name):
 		'''
