@@ -1,9 +1,9 @@
-# from pyttsx3.voice import Voice
 import time
+from unitts.basedriver import BaseDriver
+from unitts.voice import Voice
 from jnius import autoclass
 import android
-from android.permissions import request_permissions, Permission
-request_permissions([Permission.INTERNET])
+# from android.permissions import request_permissions, Permission
 
 """
 		from jnius import autoclass
@@ -56,17 +56,43 @@ class MyUtteranceProgressListener(UtteranceProgressListener):
 		self.tts._proxy.notify('finished-uttterance', completed=flag)
 """
 
-class AndroidNativeTTS(object):
+def language_by_lang(lang):
+    locales = {
+        'zh':'zh_CN',
+        'en':'en_US',
+        'tr':'tr_TR',
+        'th':'th_TH',
+        'sv':'sv_SE',
+        'es':'es_ES',
+        'sk':'sk_SK',
+        'ru':'ru_RU',
+        'ro':'ro_RO',
+        'pt':'pt_PT',
+        'pl':'pl_PL',
+        'no':'no_NO',
+        'ko':'ko_KO',
+        'ja':'ja_JP',
+        'it':'it_IT',
+        'id':'id_ID',
+        'hu':'hu_HU',
+        'hi':'hi_IN',
+        'el':'el_GR',
+        'de':'de_DE',
+        'fr':'fr-FR',
+        'nl':'nl-NL',
+        'da':'da-DK',
+        'cs':'cs-CZ',
+        'ar':'ar-SA'
+    }
+    return locales.get(lang, None)
+
+class AndroidNativeTTS(BaseDriver):
 	'''
-	Android Navtive speech engine implementation. Documents the interface, notifications,
+	Android Navtive speech engine implementation. 
+	Documents the interface, notifications,
 	properties, and sequencing responsibilities of a driver implementation.
 
 	@ivar _proxy: Driver proxy that manages this instance
-	@type _proxy: L{driver.DriverProxy}
-	@ivar _config: Dummy configuration
-	@type _config: dict
-	@ivar _looping: True when in the dummy event loop, False when not
-	@ivar _looping: bool
 	'''
 	def __init__(self, proxy):
 		'''
@@ -75,14 +101,16 @@ class AndroidNativeTTS(object):
 		@param proxy: Proxy creating the driver
 		@type proxy: L{driver.DriverProxy}
 		'''
-
+		
+		super().__init__(proxy)
 		self._tts = TextToSpeech(PythonActivity.mActivity, None)
 		# listener = MyUtteranceProgressListener(self)
 		# self._tts.setOnUtteranceProgressListener(listener)
 		self.setProperty('rate', 200)
-		self._proxy = proxy
-		self._looping = False
-		self._completed = True
+
+	def set_voice(self, lang):
+		locale = Locale(language_by_lang(lang))
+		self._tts.setLanguage(locale)
 
 	def init_listener(self, status):
 		print('status=', status)
@@ -96,76 +124,23 @@ class AndroidNativeTTS(object):
 		del self._tts
 		self._tts = None
 
-	def startLoop(self):
-		'''
-		Starts a blocking run loop in which driver callbacks are properly
-		invoked.
+	def pre_command(self, sentence):
+		return sentence.start_pos, sentence
 
-		@precondition: There was no previous successful call to L{startLoop}
-			without an intervening call to L{stopLoop}.
-		'''
-		first = True
-		self._looping = True
-		while self._looping:
-			if first:
-				self._proxy.setBusy(False)
-				first = False
-			time.sleep(0.5)
+	def command(self, pos, sentence):
+		print('command(). sentence.text
+		self.speak_sentence(sentence)
 
-	def endLoop(self):
-		'''
-		Stops a previously started run loop.
-
-		@precondition: A previous call to L{startLoop} suceeded and there was
-			no intervening call to L{endLoop}.
-		'''
-		self._looping = False
-
-	def iterate(self):
-		'''
-		Iterates from within an external run loop.
-		'''
-		self._proxy.setBusy(False)
-		yield
-
-	def say(self, text):
-		'''
-		Speaks the given text. Generates the following notifications during
-		output:
-
-		started-utterance: When speech output has started
-		started-word: When a word is about to be spoken. Includes the character
-			"location" of the start of the word in the original utterance text
-			and the "length" of the word in characters.
-		finished-utterance: When speech output has finished. Includes a flag
-			indicating if the entire utterance was "completed" or not.
-
-		The proxy automatically adds any "name" associated with the utterance
-		to the notifications on behalf of the driver.
-
-		When starting to output an utterance, the driver must inform its proxy
-		that it is busy by invoking L{driver.DriverProxy.setBusy} with a flag
-		of True. When the utterance completes or is interrupted, the driver
-		inform the proxy that it is no longer busy by invoking
-		L{driver.DriverProxy.setBusy} with a flag of False.
-
-		@param text: Unicode text to speak
-		@type text: unicode
-		'''
+	def speak_sentence(self, sentence):
 		self._proxy.setBusy(True)
-		self._tts.speak(text, TextToSpeech.QUEUE_ADD, None)
-
-	def stop(self):
-		'''
-		Stops any current output. If an utterance was being spoken, the driver
-		is still responsible for sending the closing finished-utterance
-		notification documented above and resetting the busy state of the
-		proxy.
-		'''
-		if self._proxy.isBusy():
-			self._completed = False
-		self._tts.stop()
-
+		self.set_voice(sentence.lang)
+		retries = 0
+		r = self._tts.speak(text, TextToSpeech.QUEUE_FLUSH, None)
+		while retries < 5 and r == -1:
+			time.sleep(0.1)
+			retries += 1
+			r = self._tts.speak(text, TextToSpeech.QUEUE_FLUSH, None)
+			
 	def getProperty(self, name):
 		'''
 		Gets a property value of the speech engine. The suppoted properties
@@ -190,22 +165,7 @@ class AndroidNativeTTS(object):
 			return self._tts.getSpeechRate()
 		return None
 
-
-
-
 	def setProperty(self, name, value):
-		'''
-		Sets one of the supported property values of the speech engine listed
-		above. If a value is invalid, attempts to clip it / coerce so it is
-		valid before giving up and firing an exception.
-
-		@param name: Property name
-		@type name: str
-		@param value: Property value
-		@type value: object
-		@raise KeyError: When the property name is unknown
-		@raise ValueError: When the value cannot be coerced to fit the property
-		'''
 		if name == 'voices':
 			return
 		if name == 'voice':
