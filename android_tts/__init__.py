@@ -110,7 +110,7 @@ class AndroidNativeTTS(BaseDriver):
 		return sentence.start_pos, sentence
 
 	def command(self, pos, sentence):
-		print('command(). sentence.text
+		print('command() ', sentence.text)
 		self.speak_sentence(sentence)
 
 	def speak_sentence(self, sentence):
