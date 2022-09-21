@@ -66,7 +66,7 @@ def language_by_lang(lang):
         'cs':'cs-CZ',
         'ar':'ar-SA'
     }
-    return locales.get(lang, None)
+    return locales.get(lang, 'zh_CN')
 
 class AndroidNativeTTS(BaseDriver):
 	'''
@@ -93,16 +93,9 @@ class AndroidNativeTTS(BaseDriver):
 	def set_voice(self, lang):
 		locale = Locale(language_by_lang(lang))
 		self._tts.setLanguage(locale)
-
-	def init_listener(self, status):
-		print('status=', status)
+		print(f'{lang} --> {locale.toString()}')
 
 	def destroy(self):
-		'''
-		Optional method that will be called when the driver proxy is being
-		destroyed. Can cleanup any resources to make sure the engine terminates
-		properly.
-		'''
 		del self._tts
 		self._tts = None
 
